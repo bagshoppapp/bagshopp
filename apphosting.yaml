@@ -5,8 +5,7 @@ buildConfig:
   # You can specify the amount of memory to give your build.
   # This can be any of 512MiB, 1GiB, 2GiB, 4GiB, 8GiB, 16GiB.
   memoryMiB: 4096
-runConfig:
-  # A list of environment variables to be provided to your app.
+  # A list of environment variables to be provided to your app at build time.
   # These values are sourced from Google Secret Manager.
   # https://firebase.google.com/docs/app-hosting/configure#secret-env
   secretEnv:
