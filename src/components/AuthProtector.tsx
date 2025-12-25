@@ -2,15 +2,19 @@
 
 import { useLayoutEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from '../firebase/client';
 import { onAuthStateChanged } from 'firebase/auth';
+import { useFirebaseAuth } from '../firebase/firebase-context';
 
 // This component protects a route, redirecting to /login if the user is not authenticated.
 export default function AuthProtector({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const auth = useFirebaseAuth(); // Use the hook to get the auth instance
   const [isLoading, setIsLoading] = useState(true);
 
   useLayoutEffect(() => {
+    // If auth is not yet initialized, don't do anything.
+    if (!auth) return;
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       // Check if the user is not logged in
       if (!user) {
@@ -24,9 +28,10 @@ export default function AuthProtector({ children }: { children: React.ReactNode 
 
     // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [router]);
+  }, [router, auth]); // Add auth to the dependency array
 
   // While checking the auth state, show a loading message
+  // This also implicitly handles the case where auth is null.
   if (isLoading) {
     return (
         <div className="flex items-center justify-center min-h-screen bg-black text-white">
