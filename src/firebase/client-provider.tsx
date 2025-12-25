@@ -37,15 +37,10 @@ export function FirebaseClientProvider({ children }: { children: ReactNode }) {
         // No es necesario un cleanup, ya que la app se inicializa una vez.
     }, []); // El array vacío asegura que este efecto se ejecute solo una vez
 
-    // Mientras Firebase se inicializa, no renderices nada o muestra un loader.
-    // Esto es CRUCIAL para evitar que los hooks se usen antes de tiempo.
-    if (!firebase) {
-        // Puedes reemplazar esto con un componente de carga más sofisticado
-        return <p className="text-white text-center pt-20">Inicializando aplicación...</p>;
-    }
-
-    // Una vez que `firebase` tiene valor, renderiza el proveedor con el contexto
-    // y los componentes hijos dentro.
+    // Renderiza siempre el proveedor. El valor será `null` hasta que Firebase
+    // se inicialice en el `useEffect`. Los componentes que consumen el contexto
+    // ya están preparados para manejar un valor `null`.
+    // Esto soluciona el error de hidratación de React.
     return (
         <FirebaseContext.Provider value={firebase}>
             {children}
