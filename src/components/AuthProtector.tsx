@@ -1,45 +1,51 @@
 "use client";
 
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useState, useLayoutEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { useFirebaseAuth } from '../firebase/firebase-context';
 
-// This component protects a route, redirecting to /login if the user is not authenticated.
 export default function AuthProtector({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const auth = useFirebaseAuth(); // Use the hook to get the auth instance
-  const [isLoading, setIsLoading] = useState(true);
+  const auth = useFirebaseAuth();
+  // Este estado nos dirá si la verificación del lado del cliente ha finalizado.
+  const [isCheckComplete, setIsCheckComplete] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
 
+  // Este efecto se suscribe al estado de autenticación de Firebase.
   useLayoutEffect(() => {
-    // If auth is not yet initialized, don't do anything.
+    // No hacemos nada hasta que el contexto de Firebase esté listo.
     if (!auth) return;
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      // Check if the user is not logged in
-      if (!user) {
-        // If not logged in, redirect to the login page
-        router.replace('/login');
-      } else {
-        // If logged in, stop showing the loading state
-        setIsLoading(false);
-      }
+      // 1. Guardamos el estado del usuario (sea el que sea).
+      setUser(user);
+      // 2. Marcamos la verificación como completa.
+      setIsCheckComplete(true);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
-  }, [router, auth]); // Add auth to the dependency array
+  }, [auth]);
 
-  // While checking the auth state, show a loading message
-  // This also implicitly handles the case where auth is null.
-  if (isLoading) {
-    return (
-        <div className="flex items-center justify-center min-h-screen bg-black text-white">
-            <p>Verificando acceso...</p>
-        </div>
-    );
+  // Este efecto se encarga de la redirección, y SOLO se ejecuta cuando la verificación ha terminado.
+  useEffect(() => {
+    // Si la verificación está completa y NO hay usuario, redirigimos.
+    if (isCheckComplete && !user) {
+      router.replace('/login');
+    }
+  }, [isCheckComplete, user, router]);
+
+  // -- Lógica de Renderizado --
+  // Renderizamos el contenido protegido SOLO si la verificación está completa Y tenemos un usuario.
+  // En cualquier otro caso (en el servidor, en el primer render del cliente, o mientras se verifica),
+  // mostramos el mensaje de carga. Esto garantiza que el servidor y el cliente rendericen lo mismo inicialmente.
+  if (isCheckComplete && user) {
+    return <>{children}</>;
   }
 
-  // If the user is authenticated, render the children components (the protected page)
-  return <>{children}</>;
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-black text-white">
+        <p>Verificando acceso...</p>
+    </div>
+  );
 }
