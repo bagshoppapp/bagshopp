@@ -1,12 +1,7 @@
 "use client";
 
-import dynamic from 'next/dynamic';
+// Originalmente se usaba `next/dynamic` aquí, pero no es necesario y puede causar problemas
+// en el empaquetado si el componente importado ya es de cliente.
+// La forma más directa es simplemente exportar el componente de cliente.
 
-const RegistroContainer = dynamic(() => import('./RegistroContainer'), { 
-  ssr: false,
-  loading: () => <div className="flex items-center justify-center min-h-screen bg-black text-white"><p>Cargando formulario...</p></div>
-});
-
-export default function RegistroPage() {
-  return <RegistroContainer />;
-}
+export { default } from './RegistroContainer';

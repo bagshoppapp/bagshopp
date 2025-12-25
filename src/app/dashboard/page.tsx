@@ -1,13 +1,6 @@
 "use client";
 
-import dynamic from 'next/dynamic';
+// Al igual que en las otras páginas, simplificamos la exportación
+// para asegurar que Next.js no empaquete código de cliente en el servidor.
 
-// Carga dinámicamente todo el contenedor del dashboard con SSR deshabilitado
-const DashboardContainer = dynamic(() => import('./DashboardContainer'), { 
-    ssr: false,
-    loading: () => <div className="flex items-center justify-center min-h-screen bg-black text-white"><p>Cargando...</p></div>
-});
-
-export default function DashboardPage() {
-  return <DashboardContainer />;
-}
+export { default } from './DashboardContainer';

@@ -32,22 +32,17 @@ export default function LoginContainer() {
   };
 
   return (
-    <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Logo Centrado */}
-        <div className="flex justify-center">
-          <div className="relative w-48 h-48">
-            <Image
-              src="/imagen01.jpeg"
-              alt="Logo de la empresa"
-              fill
-              className="object-cover rounded-full"
-              sizes="192px"
-            />
-          </div>
-        </div>
-
-        {/* Formulario */}
+    <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-4">
+      <header className="absolute top-0 w-full flex justify-center p-4">
+        <Image
+          src="/imagen01.jpeg"
+          alt="Logo"
+          width={100}
+          height={100}
+          className="rounded-full"
+        />
+      </header>
+      <div className="relative z-10 w-full max-w-md space-y-6">
         <div className="bg-gray-900 bg-opacity-75 p-8 rounded-lg shadow-xl">
           <h1 className="text-2xl font-bold text-center mb-6">Admin Login</h1>
           <form onSubmit={handleLogin} className="space-y-6">
