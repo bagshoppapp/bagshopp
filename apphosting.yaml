@@ -5,3 +5,20 @@ buildConfig:
   # You can specify the amount of memory to give your build.
   # This can be any of 512MiB, 1GiB, 2GiB, 4GiB, 8GiB, 16GiB.
   memoryMiB: 4096
+runConfig:
+  # A list of environment variables to be provided to your app.
+  # These values are sourced from Google Secret Manager.
+  # https://firebase.google.com/docs/app-hosting/configure#secret-env
+  secretEnv:
+    - key: NEXT_PUBLIC_FIREBASE_API_KEY
+      secret: NEXT_PUBLIC_FIREBASE_API_KEY
+    - key: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+      secret: NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+    - key: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+      secret: NEXT_PUBLIC_FIREBASE_PROJECT_ID
+    - key: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+      secret: NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+    - key: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+      secret: NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+    - key: NEXT_PUBLIC_FIREBASE_APP_ID
+      secret: NEXT_PUBLIC_FIREBASE_APP_ID
