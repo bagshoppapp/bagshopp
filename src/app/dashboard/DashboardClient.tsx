@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { db, auth } from '../../firebase/client';
+// Importa los hooks de contexto en lugar de la importación directa
+import { useFirebaseDb, useFirebaseAuth } from '../../firebase/firebase-context';
 import { collection, getDocs } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 
@@ -22,8 +23,15 @@ export default function DashboardClient() {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  
+  // Usa los hooks para obtener las instancias de db y auth de forma segura
+  const db = useFirebaseDb();
+  const auth = useFirebaseAuth();
 
   useEffect(() => {
+    // Asegúrate de que db y auth no sean nulos antes de usarlos
+    if (!db || !auth) return;
+
     const fetchServices = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "servicios"));
@@ -37,7 +45,7 @@ export default function DashboardClient() {
     };
 
     fetchServices();
-  }, []);
+  }, [db, auth]); // Añade db y auth como dependencias del efecto
 
   const handleLogout = async () => {
     try {

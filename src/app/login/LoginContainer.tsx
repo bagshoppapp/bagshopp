@@ -2,18 +2,28 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase/client';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+// Importa el hook de contexto en lugar de la importación directa
+import { useFirebaseAuth } from '../../firebase/firebase-context';
 
 export default function LoginContainer() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const router = useRouter();
+  
+  // Usa el hook para obtener la instancia de auth de forma segura
+  const auth = useFirebaseAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(''); // Reset error message
+
+    // Asegúrate de que auth no sea nulo antes de usarlo
+    if (!auth) {
+        setError('Error: La autenticación de Firebase no está disponible.');
+        return;
+    }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -69,7 +79,7 @@ export default function LoginContainer() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 mt-1 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500"
+                className="w-full px-3 py-2 mt-1 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-gray-900 focus:ring-orange-500"
               />
             </div>
             

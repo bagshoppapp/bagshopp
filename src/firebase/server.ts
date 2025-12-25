@@ -2,12 +2,10 @@ import { initializeApp, getApps, getApp, cert } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 
-const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY as string);
-
+// Cuando se despliega en App Hosting, initializeApp() automáticamente
+// encuentra las credenciales de servicio. No se necesita configuración manual.
 if (!getApps().length) {
-  initializeApp({
-    credential: cert(serviceAccount),
-  });
+  initializeApp();
 }
 
 const adminDB = getFirestore();
