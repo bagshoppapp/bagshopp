@@ -1,0 +1,7 @@
+# Settings to manage and configure a Firebase App Hosting backend.
+# https://firebase.google.com/docs/app-hosting/configure
+
+buildConfig:
+  # You can specify the amount of memory to give your build.
+  # This can be any of 512MiB, 1GiB, 2GiB, 4GiB, 8GiB, 16GiB.
+  memoryMiB: 4096

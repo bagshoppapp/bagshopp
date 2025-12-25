@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "Document": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Document",
+      "type": "object",
+      "description": "Represents a user-created document within the Blank Canvas application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Document entity."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the document."
+        },
+        "content": {
+          "type": "string",
+          "description": "The text content of the document."
+        },
+        "lastModified": {
+          "type": "string",
+          "description": "Timestamp indicating when the document was last modified.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "content",
+        "lastModified"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}/documents/{documentId}",
+        "definition": {
+          "entityName": "Document",
+          "schema": {
+            "$ref": "#/backend/entities/Document"
+          },
+          "description": "Stores user-created documents. Access is restricted to the user identified by the 'userId' path parameter. This structure enforces path-based ownership, ensuring that only the user can access documents stored under their ID.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier of the user."
+            },
+            {
+              "name": "documentId",
+              "description": "The unique identifier of the document."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "Given the Blank Canvas application's core feature of allowing users to create and save documents, the Firestore data structure is designed with user-specific document storage to ensure data privacy and ownership. This approach uses path-based ownership for user documents. \n\nEach user will have their own collection of documents stored under `/users/{userId}/documents/{documentId}`. This structure provides the following benefits:\n\n1. **Authorization Independence:** Security rules can be written to ensure that only the user with the matching `userId` can access documents under that path.  No `get()` calls are required to authorize access, as the path itself encodes ownership.\n2. **QAPs:** The structure directly supports secure listing of documents. The security rules can allow a user to list only the documents under their `users/{userId}/documents` path, preventing unauthorized access to other users' documents. Since each document's access control is determined by its path, listing operations do not require filtering based on document content. \n\nThis structure aligns with the principle of using hierarchical paths for user-owned data. It's straightforward to implement and reason about, leading to fewer security vulnerabilities."
+  }
+}

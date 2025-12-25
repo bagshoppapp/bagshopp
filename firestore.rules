@@ -1,0 +1,108 @@
+/**
+ * Core Philosophy: This ruleset enforces a strict user-ownership model for a document creation application.
+ * All user-generated data is stored within a private subcollection tied to the user's unique ID, ensuring
+ * that no user can access, list, or modify another user's data. The default security posture is deny-all.
+ *
+ * Data Structure: All application data follows a hierarchical path: /users/{userId}/documents/{documentId}.
+ * This structure uses the path itself to encode ownership, which is a highly performant and secure pattern
+ * for authorization, as it avoids the need for extra database reads within the rules.
+ *
+ * Key Security Decisions:
+ * - User Data Isolation: Users can only interact with documents located under their own user ID path.
+ * - No User Enumeration: The top-level `/users` collection cannot be listed, preventing attackers from
+ *   discovering the list of registered user IDs.
+ * - Ownership is Immutable: Once a document is created, its association with the owner (via an internal 'id'
+ *   field that mirrors the documentId) cannot be changed.
+ *
+ * Denormalization for Authorization: This ruleset relies on path-based authorization. Ownership is determined
+ * by the `{userId}` in the path (`/users/{userId}/...`), which is the most efficient method as it requires
+ * no `get()` calls to check separate ownership documents.
+ *
+ * Structural Segregation: Not applicable in this model, as all documents are considered private to the user.
+ * There is no concept of public or shared content.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----------------------------------------------------------------------
+    // Helper Functions
+    // ----------------------------------------------------------------------
+
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user's UID matches the given userId.
+     * This is the primary function for enforcing data ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * For state-changing operations (update, delete), ensures the user is the
+     * owner AND the document already exists.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    // ----------------------------------------------------------------------
+    // Prototyping Validation Helpers
+    // (Focus on relational integrity, not data shapes)
+    // ----------------------------------------------------------------------
+    
+    /**
+     * On create, validates that the document's internal 'id' field matches the
+     * document's ID in the path. This enforces relational integrity.
+     */
+    function hasValidDocumentIdOnCreate(documentId) {
+      return request.resource.data.id == documentId;
+    }
+
+    /**
+     * On update, ensures the document's internal 'id' field cannot be changed.
+     * This prevents re-assigning the document's core identifier.
+     */
+    function documentIdIsImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * @description Disallows all access to the top-level user documents. This rule is a critical security
+     *              measure to prevent listing all users in the application (user enumeration).
+     * @path        /users/{userId}
+     * @allow       (none) - All operations are explicitly denied.
+     * @deny        A user attempting `get(/users/anotherUserId)`.
+     * @principle   Prevents user enumeration by securing the top-level collection path.
+     */
+    match /users/{userId} {
+      allow get: if false;
+      allow list: if false;
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    /**
+     * @description Secures a user's private documents. Only the user who owns the document collection (as
+     *              defined by the `userId` in the path) can read, write, or delete documents within it.
+     * @path        /users/{userId}/documents/{documentId}
+     * @allow       (create) A signed-in user creating a document at `/users/THEIR_OWN_UID/documents/newDoc`.
+     * @deny        (get) A user trying to read a document at `/users/SOME_OTHER_UID/documents/someDoc`.
+     * @principle   Restricts access to a user's own data tree using path-based ownership.
+     */
+    match /users/{userId}/documents/{documentId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && hasValidDocumentIdOnCreate(documentId);
+      allow update: if isExistingOwner(userId) && documentIdIsImmutable();
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}
